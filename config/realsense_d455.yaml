@@ -43,7 +43,7 @@ Camera.fps: 30
 Camera.RGB: 1
 
 # Close/Far threshold. Baseline times.
-Stereo.ThDepth: 40.0
+Stereo.ThDepth: 60.0
 
 # Baseline (meters) estimated from T(cam1<-cam0) translation x
 Stereo.b: 0.094858

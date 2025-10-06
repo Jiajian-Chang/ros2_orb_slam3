@@ -143,24 +143,26 @@ void StereoMode::publishOutputs(const Sophus::SE3f& Tcw, const rclcpp::Time& sta
     state_msg.data = 2; // OK
     state_pub_->publish(state_msg);
 
-    // Convert to Twc (camera in world) and transform NED -> ENU
-    Sophus::SE3f Twc_ned = Tcw.inverse();
-    const Eigen::Matrix3f C_enu_ned = (Eigen::Matrix3f() << 0, 1, 0,
-                                                           1, 0, 0,
-                                                           0, 0, -1).finished();
-    Eigen::Matrix3f R_enu = C_enu_ned * Twc_ned.rotationMatrix();
-    Eigen::Vector3f t_enu = C_enu_ned * Twc_ned.translation();
+    // Convert to Twc (camera in world) and transform ORB-SLAM3 -> ROS
+    // ORB-SLAM3: x right, y down, z forward
+    // ROS: x forward, y left, z up
+    Sophus::SE3f Twc_orb = Tcw.inverse();
+    const Eigen::Matrix3f C_ros_orb = (Eigen::Matrix3f() << 0, 0, 1,
+                                                             -1, 0, 0,
+                                                             0, -1, 0).finished();
+    Eigen::Matrix3f R_ros = C_ros_orb * Twc_orb.rotationMatrix();
+    Eigen::Vector3f t_ros = C_ros_orb * Twc_orb.translation();
 
-    Eigen::Quaternionf q(R_enu);
+    Eigen::Quaternionf q(R_ros);
     q.normalize();
 
     // PoseStamped
     geometry_msgs::msg::PoseStamped pose_msg;
     pose_msg.header.stamp = stamp;
     pose_msg.header.frame_id = mapFrame;
-    pose_msg.pose.position.x = t_enu.x();
-    pose_msg.pose.position.y = t_enu.y();
-    pose_msg.pose.position.z = t_enu.z();
+    pose_msg.pose.position.x = t_ros.x();
+    pose_msg.pose.position.y = t_ros.y();
+    pose_msg.pose.position.z = t_ros.z();
     pose_msg.pose.orientation.x = q.x();
     pose_msg.pose.orientation.y = q.y();
     pose_msg.pose.orientation.z = q.z();
@@ -173,14 +175,14 @@ void StereoMode::publishOutputs(const Sophus::SE3f& Tcw, const rclcpp::Time& sta
     keyframe_path_.poses.push_back(pose_msg);
     path_pub_->publish(keyframe_path_);
 
-    // TF map -> camera_frame (ENU)
+    // TF map -> camera_frame (ROS)
     geometry_msgs::msg::TransformStamped tf_msg;
     tf_msg.header.stamp = stamp;
     tf_msg.header.frame_id = mapFrame;
     tf_msg.child_frame_id = cameraFrame;
-    tf_msg.transform.translation.x = t_enu.x();
-    tf_msg.transform.translation.y = t_enu.y();
-    tf_msg.transform.translation.z = t_enu.z();
+    tf_msg.transform.translation.x = t_ros.x();
+    tf_msg.transform.translation.y = t_ros.y();
+    tf_msg.transform.translation.z = t_ros.z();
     tf_msg.transform.rotation.x = q.x();
     tf_msg.transform.rotation.y = q.y();
     tf_msg.transform.rotation.z = q.z();
