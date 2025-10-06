@@ -25,6 +25,12 @@ find_package(OpenCV 4.2 REQUIRED)
 find_package(Eigen3 3.3.0 REQUIRED) # Matched with Sophus
 find_package(Pangolin REQUIRED)
 find_package(image_transport REQUIRED)
+find_package(message_filters REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 
 
 # Header file locations [C++ node]
@@ -54,6 +60,12 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   # your_custom_msg_interface
   cv_bridge
   image_transport
+  message_filters
+  geometry_msgs
+  nav_msgs
+  tf2
+  tf2_ros
+  tf2_geometry_msgs
   OpenCV
   Eigen3
   Pangolin
@@ -163,6 +175,18 @@ ament_target_dependencies(mono_node_cpp
 
 target_link_libraries(mono_node_cpp PUBLIC orb_slam3_lib) # Link a node with the internal shared library
 
+# Stereo executable
+add_executable(stereo_node_cpp
+  src/stereo_example.cpp
+  src/stereo.cpp
+)
+
+ament_target_dependencies(stereo_node_cpp
+  PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS}
+)
+
+target_link_libraries(stereo_node_cpp PUBLIC orb_slam3_lib)
+
 
 # Install all the header files in package/package/include
 install (DIRECTORY include/ 
@@ -170,7 +194,7 @@ install (DIRECTORY include/
 )
 
 # Install our node and library
-install(TARGETS mono_node_cpp orb_slam3_lib
+install(TARGETS mono_node_cpp orb_slam3_lib stereo_node_cpp
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
@@ -195,6 +219,16 @@ ament_python_install_package(${PROJECT_NAME}) # Install the modules in ros2_orb_
 install(PROGRAMS
   scripts/mono_driver_node.py
   DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install launch files
+install(DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME}/launch
+)
+
+# Install config files
+install(DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME}/config
 )
 
 

@@ -1,0 +1,9 @@
+ros2_orb_slam3:
+  ros__parameters:
+    node_name_arg: stereo_slam_cpp
+    left_topic: /remote/d455/infra1/image_rect_raw
+    right_topic: /remote/d455/infra2/image_rect_raw
+    map_frame: map
+    camera_frame: camera_link
+    approx_sync_queue: 10
+    headless: false 

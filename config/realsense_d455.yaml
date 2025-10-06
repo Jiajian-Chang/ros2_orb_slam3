@@ -1,0 +1,82 @@
+%YAML:1.0
+
+#--------------------------------------------------------------------------------------------
+# Pinhole + Radtan stereo calibration generated from kalibr_imucam_chain.yaml
+# cam0 := left, cam1 := right
+#--------------------------------------------------------------------------------------------
+File.version: "1.0"
+
+Camera.type: "PinHole"
+
+# Left camera (cam0) intrinsics
+Camera1.fx: 396.478065
+Camera1.fy: 395.516678
+Camera1.cx: 317.589126
+Camera1.cy: 244.287907
+
+# Left camera (cam0) distortion (radtan: k1, k2, p1, p2)
+Camera1.k1: 0.003503
+Camera1.k2: -0.000651
+Camera1.p1: 0.000317
+Camera1.p2: -0.00053
+
+# Right camera (cam1) intrinsics
+Camera2.fx: 395.899874
+Camera2.fy: 395.384495
+Camera2.cx: 316.019327
+Camera2.cy: 244.947877
+
+# Right camera (cam1) distortion (radtan: k1, k2, p1, p2)
+Camera2.k1: 0.007045
+Camera2.k2: -0.002917
+Camera2.p1: 0.0009
+Camera2.p2: -0.001662
+
+# Camera resolution
+Camera.width: 640
+Camera.height: 480
+
+# Camera frames per second 
+Camera.fps: 30
+
+# Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)
+Camera.RGB: 1
+
+# Close/Far threshold. Baseline times.
+Stereo.ThDepth: 40.0
+
+# Baseline (meters) estimated from T(cam1<-cam0) translation x
+Stereo.b: 0.094858
+
+# Transform from left (cam0) to right (cam1): T_c1_c0 = T(cam1 <- cam0)
+Stereo.T_c1_c2: !!opencv-matrix
+  rows: 4
+  cols: 4
+  dt: f
+  data: [ 0.999991, -0.000406, 0.004163, -0.094858,
+          0.000411, 0.999999, -0.001043, -0.000245,
+          -0.004162, 0.001044, 0.999991, 0.000453,
+          0, 0, 0, 1 ]
+
+#--------------------------------------------------------------------------------------------
+# ORB Parameters (defaults; tune as needed)
+#--------------------------------------------------------------------------------------------
+ORBextractor.nFeatures: 1250
+ORBextractor.scaleFactor: 1.2
+ORBextractor.nLevels: 8
+ORBextractor.iniThFAST: 20
+ORBextractor.minThFAST: 7
+
+#--------------------------------------------------------------------------------------------
+# Viewer Parameters
+#--------------------------------------------------------------------------------------------
+Viewer.KeyFrameSize: 0.05
+Viewer.KeyFrameLineWidth: 1.0
+Viewer.GraphLineWidth: 0.9
+Viewer.PointSize: 2.0
+Viewer.CameraSize: 0.08
+Viewer.CameraLineWidth: 3.0
+Viewer.ViewpointX: 0.0
+Viewer.ViewpointY: -0.7
+Viewer.ViewpointZ: -3.5
+Viewer.ViewpointF: 500.0

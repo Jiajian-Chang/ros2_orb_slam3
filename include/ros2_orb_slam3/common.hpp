@@ -15,6 +15,8 @@
 
 #include <cstring>
 #include <sstream> // String stream processing functionalities
+#include <map>
+#include <limits>
 
 //* ROS2 includes
 //* std_msgs in ROS 2 https://docs.ros2.org/foxy/api/std_msgs/index-msg.html
@@ -42,6 +44,16 @@ using std::placeholders::_1; //* TODO why this is suggested in official tutorial
 #include <opencv2/highgui/highgui.hpp> // GUI tools
 #include <opencv2/core/eigen.hpp>
 #include <image_transport/image_transport.h>
+#include <message_filters/subscriber.h>
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
+
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <nav_msgs/msg/path.hpp>
+#include <std_msgs/msg/int32.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
+#include <tf2_ros/transform_broadcaster.h>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 
 //* ORB SLAM 3 includes
 #include "System.h" //* Also imports the ORB_SLAM3 namespace
@@ -103,6 +115,59 @@ class MonocularMode : public rclcpp::Node
         void initializeVSLAM(std::string& configString); //* Method to bind an initialized VSLAM framework to this node
 
 
+};
+
+
+//* Stereo node specific definitions
+class StereoMode : public rclcpp::Node
+{
+    public:
+    StereoMode();
+    ~StereoMode();
+    void initializeSubscriptions();
+
+    private:
+        // Internal state
+        std::string nodeName = "";
+        std::string vocFilePath = "";
+        std::string settingsFilePath = ""; // Hardcoded to a Stereo config YAML
+        bool headless_ = false;
+        
+        // Frames
+        std::string mapFrame = "map";
+        std::string cameraFrame = "camera_link";
+
+        // Topics
+        std::string leftImageTopic = "camera/left";
+        std::string rightImageTopic = "camera/right";
+
+        // message_filters subscribers and sync
+        message_filters::Subscriber<sensor_msgs::msg::Image> left_filter_;
+        message_filters::Subscriber<sensor_msgs::msg::Image> right_filter_;
+        using SyncPolicy = message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::Image, sensor_msgs::msg::Image>;
+        std::unique_ptr<message_filters::Synchronizer<SyncPolicy>> sync_;
+        int approx_sync_queue_size_ = 10;
+
+        // ORB-SLAM3
+        ORB_SLAM3::System* pAgent = nullptr;
+        ORB_SLAM3::System::eSensor sensorType;
+
+        // Publishers
+        rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub_;
+        rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
+        rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr state_pub_;
+        rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr map_points_pub_;
+        std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+        nav_msgs::msg::Path keyframe_path_;
+        rclcpp::TimerBase::SharedPtr init_timer_;
+
+        // Callback
+        void stereoCallback(const sensor_msgs::msg::Image::ConstSharedPtr left,
+                            const sensor_msgs::msg::Image::ConstSharedPtr right);
+
+        // Helpers
+        void initializeVSLAM();
+        void publishOutputs(const Sophus::SE3f& Tcw, const rclcpp::Time& stamp);
 };
 
 #endif
